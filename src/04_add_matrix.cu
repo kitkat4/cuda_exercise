@@ -42,9 +42,9 @@ void printMat(const std::shared_ptr<float>& mat, const int mat_size){
 
     for(int i = 0; i < mat_size; i++){
         for(int j = 0; j < mat_size; j++){
-            std::cerr << mat.get()[i * mat_size + j] << ", ";
+            std::cout << mat.get()[i * mat_size + j] << ", ";
         }
-        std::cerr << std::endl;
+        std::cout << std::endl;
     }
 }
 
@@ -55,7 +55,7 @@ void printAdditionResults(const std::shared_ptr<float>& mat1,
 
     for(int i = 0; i < mat_size; i++){
         for(int j = 0; j < mat_size; j++){
-            std::cerr << "[" << i << ", " << j << "] " << mat3.get()[i * mat_size + j] << " = " << mat1.get()[i * mat_size + j] << " + " << mat2.get()[i * mat_size + j] << " (error: " << mat1.get()[i * mat_size + j] + mat2.get()[i * mat_size + j] - mat3.get()[i * mat_size + j] << ")" << std::endl;
+            std::cout << "[" << i << ", " << j << "] " << mat3.get()[i * mat_size + j] << " = " << mat1.get()[i * mat_size + j] << " + " << mat2.get()[i * mat_size + j] << " (error: " << mat1.get()[i * mat_size + j] + mat2.get()[i * mat_size + j] - mat3.get()[i * mat_size + j] << ")" << std::endl;
         }
     }
 }
@@ -94,6 +94,17 @@ int main(int argc, char** argv){
     initMat(mat2, mat_size);
 
     if(proc_type == GPU){
+
+        const int device = 0;
+        cudaDeviceProp device_prop;
+        CUDA_CHECK(cudaGetDeviceProperties(&device_prop, device));
+        std::cout << "Name: " << device_prop.name << std::endl;
+        size_t free_mem = 0, total_mem = 0;
+        CUDA_CHECK(cudaMemGetInfo(&free_mem, &total_mem));
+        std::cout << "Total memory [GB]: " << total_mem / 1e9 << std::endl;
+        std::cout << "Free  memory [GB]: " << free_mem / 1e9 << " (" << 100.0 * free_mem / (double)total_mem << " %)" << std::endl;
+        CUDA_CHECK(cudaSetDevice(device));
+        
         float* gpu_mat1 = nullptr;
         float* gpu_mat2 = nullptr;
         float* gpu_mat3 = nullptr;
