@@ -15,4 +15,6 @@ add_executable(02_add_float_array_cpu src/02_add_float_array_cpu.c)
 
 add_executable(03_add_float_array_gpu src/03_add_float_array_gpu.cu)
 
+add_executable(04_add_matrix src/04_add_matrix.cu)
+
 
