@@ -74,8 +74,8 @@ __global__ void addMat(float* mat1, float* mat2, float* mat3, const int mat_size
 
 int main(int argc, char** argv){
 
-    if(argc != 5){
-        std::cerr << "Usage: " << argv[0] << " <0/1 (0: gpu, 1: cpu)> <matrix size (num of cols and rows)> <block size x> <block size y>" << std::endl;
+    if(argc != 6){
+        std::cerr << "Usage: " << argv[0] << " <0/1 (0: gpu, 1: cpu)> <matrix size (num of cols and rows)> <block size x> <block size y> <0/1 (0: not show results, 1: show results)>" << std::endl;
         return 1;
     }
 
@@ -85,10 +85,15 @@ int main(int argc, char** argv){
     const int block_y = std::stoi(argv[4]);
     const int grid_x = (mat_size + block_x - 1) / block_x;
     const int grid_y = (mat_size + block_y - 1) / block_y;
+    const bool show_results = std::stoi(argv[5]) != 0;
 
     std::shared_ptr<float> mat1(new float[mat_size * mat_size]);
     std::shared_ptr<float> mat2(new float[mat_size * mat_size]);
     std::shared_ptr<float> mat3(new float[mat_size * mat_size]);
+
+    std::cout << "Address of mat1    : " << mat1.get() << std::endl;
+    std::cout << "Address of mat2    : " << mat2.get() << std::endl;
+    std::cout << "Address of mat3    : " << mat3.get() << std::endl;
 
     initMat(mat1, mat_size);
     initMat(mat2, mat_size);
@@ -99,6 +104,15 @@ int main(int argc, char** argv){
         cudaDeviceProp device_prop;
         CUDA_CHECK(cudaGetDeviceProperties(&device_prop, device));
         std::cout << "Name: " << device_prop.name << std::endl;
+        std::cout << "Capability version (major.minor): " << device_prop.major << "." << device_prop.minor << std::endl;
+
+        int driver_version = 0, runtime_version = 0;
+        CUDA_CHECK(cudaDriverGetVersion(&driver_version));
+        std::cout << "Driver version: " << driver_version << std::endl;
+
+        CUDA_CHECK(cudaRuntimeGetVersion(&runtime_version));
+        std::cout << "Runtime version: " << runtime_version << std::endl;
+
         size_t free_mem = 0, total_mem = 0;
         CUDA_CHECK(cudaMemGetInfo(&free_mem, &total_mem));
         std::cout << "Total memory [GB]: " << total_mem / 1e9 << std::endl;
@@ -110,8 +124,12 @@ int main(int argc, char** argv){
         float* gpu_mat3 = nullptr;
         CUDA_CHECK(cudaMalloc(&gpu_mat1, mat_size * mat_size * sizeof(float)));
         CUDA_CHECK(cudaMalloc(&gpu_mat2, mat_size * mat_size * sizeof(float)));
-        CUDA_CHECK(cudaMalloc(&gpu_mat3, mat_size * mat_size * sizeof(float)));        
+        CUDA_CHECK(cudaMalloc(&gpu_mat3, mat_size * mat_size * sizeof(float)));
 
+        std::cout << "Address of gpu_mat1    : " << gpu_mat1 << std::endl;
+        std::cout << "Address of gpu_mat2    : " << gpu_mat2 << std::endl;
+        std::cout << "Address of gpu_mat3    : " << gpu_mat3 << std::endl;
+        
         CUDA_CHECK(cudaMemcpy(gpu_mat1, mat1.get(),
                               mat_size * mat_size * sizeof(float), cudaMemcpyHostToDevice));
         CUDA_CHECK(cudaMemcpy(gpu_mat2, mat2.get(),
@@ -138,7 +156,9 @@ int main(int argc, char** argv){
         throw std::runtime_error("Invalid option");
     }
 
-    printAdditionResults(mat1, mat2, mat3, mat_size);
+    if(show_results){
+        printAdditionResults(mat1, mat2, mat3, mat_size);
+    }
 
     return 0;
 }
